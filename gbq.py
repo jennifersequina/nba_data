@@ -122,10 +122,11 @@ class GBQ:
         result = self._read_data(query_details)
         return result
 
-    def get_player_pts(self, season: int) -> pd.DataFrame:
+    def get_player_pts(self, season: int, team: str) -> pd.DataFrame:
         """
         Get the players' 3-points, 2-points, and free throw per season
         :param season: Season ID parameter like 2021, 2020 etc.
+        :param team: Team abbreviation like DEN, BKN, etc.
         :return: dataframe
         """
 
@@ -136,14 +137,41 @@ class GBQ:
                               SUM(IFNULL((t.fg3m*3),0)) AS three_pts,
                               SUM(IFNULL(t.ftm,0)) AS free_pts,
                               SUM(IFNULL(t.pts,0)) AS total_pts,
-                              CASE WHEN SUM(IFNULL(t.pts,0)) = IFNULL(SUM(t.ftm) + SUM((t.fg3m*3)) +
-                              SUM((t.fgm-t.fg3m)*2),0) THEN 'True' ELSE 'False' END AS checker
                           FROM `{self.project_id}.{self.dataset}.traditional` t
                           JOIN `{self.project_id}.{self.dataset}.schedule` s ON s.game_id = t.game_id
-                          WHERE s.season_type = 'REG' AND s.season = {season}
+                          WHERE s.season_type = 'REG' AND s.season = {season} AND t.team_abbreviation = '{team}'
                           GROUP BY 1, 2
+                          ORDER BY total_pts DESC
                         )
                         SELECT player_name, two_pts, three_pts, free_pts, total_pts FROM scoreboard
+                        """
+
+        print(query_details)
+        result = self._read_data(query_details)
+        return result
+
+
+    def get_team_data(self, season: int, team: str, agg: str, metric: str) -> pd.DataFrame:
+        """
+        Get the players' 3-points, 2-points, and free throw per season
+        :param season: Season ID parameter like 2021, 2020 etc.
+        :param team: Team abbreviation like DEN, BKN, etc.
+        :param agg: SUM or AVG
+        :param metric: pts, reb, ast, stl, blk, etc
+        :return: dataframe
+        """
+
+        query_details = f"""
+                        WITH scoreboard AS (
+                          SELECT s.season, t.player_name,
+                              ROUND({agg}(IFNULL(t.{metric},0)),2) AS total_{metric},
+                          FROM `{self.project_id}.{self.dataset}.traditional` t
+                          JOIN `{self.project_id}.{self.dataset}.schedule` s ON s.game_id = t.game_id
+                          WHERE s.season_type = 'REG' AND s.season = {season} AND t.team_abbreviation = '{team}'
+                          GROUP BY 1, 2
+                          ORDER BY total_{metric} DESC
+                        )
+                        SELECT player_name, total_{metric} FROM scoreboard
                         """
 
         print(query_details)

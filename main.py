@@ -9,5 +9,11 @@ g.get_avg_pts(2021)
 
 g.get_game_result('DEN')
 
-g.get_player_pts(2021)
+g.get_player_pts(2021, 'DEN')
+
+g.get_team_data(2021, 'DEN', 'AVG', 'stl')
+
+
+
+
 
