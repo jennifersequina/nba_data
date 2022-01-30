@@ -157,7 +157,7 @@ class GBQ:
         :param season: Season ID parameter like 2021, 2020 etc.
         :param team: Team abbreviation like DEN, BKN, etc.
         :param agg: SUM or AVG
-        :param metric: pts, reb, ast, stl, blk, etc
+        :param metric: pts, reb, ast, stl, blk, etc.
         :return: dataframe
         """
 
