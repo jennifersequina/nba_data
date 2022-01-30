@@ -156,24 +156,37 @@ class GBQ:
         Get the players' 3-points, 2-points, and free throw per season
         :param season: Season ID parameter like 2021, 2020 etc.
         :param team: Team abbreviation like DEN, BKN, etc.
-        :param agg: SUM or AVG
+        :param agg: SUM, AVG, MIN, MAX or MEDIAN
         :param metric: pts, reb, ast, stl, blk, etc.
         :return: dataframe
         """
-
-        query_details = f"""
-                        WITH metrics AS (
-                          SELECT s.season, t.player_name,
-                              ROUND({agg}(IFNULL(t.{metric},0)),2) AS total_{metric},
-                          FROM `{self.project_id}.{self.dataset}.traditional` t
-                          JOIN `{self.project_id}.{self.dataset}.schedule` s ON s.game_id = t.game_id
-                          WHERE s.season_type = 'REG' AND s.season = {season} AND t.team_abbreviation = '{team}'
-                          GROUP BY 1, 2
-                          ORDER BY total_{metric} DESC
-                        )
-                        SELECT player_name, total_{metric} FROM metrics
-                        """
+        if agg != 'MEDIAN':
+            query_details = f"""
+                            WITH metrics AS (
+                              SELECT s.season, t.player_name,
+                                  ROUND({agg}(IFNULL(t.{metric},0)),2) AS {agg}_{metric},
+                              FROM `{self.project_id}.{self.dataset}.traditional` t
+                              JOIN `{self.project_id}.{self.dataset}.schedule` s ON s.game_id = t.game_id
+                              WHERE s.season_type = 'REG' AND s.season = {season} AND t.team_abbreviation = '{team}'
+                              GROUP BY 1, 2
+                              ORDER BY {agg}_{metric} DESC
+                            )
+                            SELECT player_name, {agg}_{metric} FROM metrics
+                            """
+        else:
+            query_details = f"""
+                            WITH metrics AS (
+                                SELECT DISTINCT s.season, t.player_name, 
+                                PERCENTILE_CONT(t.{metric}, 0.5) OVER (PARTITION BY t.player_name) AS {agg}_{metric}
+                                FROM `{self.project_id}.{self.dataset}.traditional` t
+                                JOIN `{self.project_id}.{self.dataset}.schedule` s ON s.game_id = t.game_id
+                                WHERE s.season_type = 'REG' AND s.season = {season} AND t.team_abbreviation = '{team}'
+                                ORDER BY {agg}_{metric}  DESC
+                                )
+                            SELECT player_name, {agg}_{metric} FROM metrics
+                            """
 
         print(query_details)
         result = self._read_data(query_details)
         return result
+
