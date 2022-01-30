@@ -151,7 +151,7 @@ class GBQ:
         return result
 
 
-    def get_team_data(self, season: int, team: str, agg: str, metric: str) -> pd.DataFrame:
+    def get_player_metric(self, season: int, team: str, agg: str, metric: str) -> pd.DataFrame:
         """
         Get the players' 3-points, 2-points, and free throw per season
         :param season: Season ID parameter like 2021, 2020 etc.
@@ -162,7 +162,7 @@ class GBQ:
         """
 
         query_details = f"""
-                        WITH scoreboard AS (
+                        WITH metrics AS (
                           SELECT s.season, t.player_name,
                               ROUND({agg}(IFNULL(t.{metric},0)),2) AS total_{metric},
                           FROM `{self.project_id}.{self.dataset}.traditional` t
@@ -171,7 +171,7 @@ class GBQ:
                           GROUP BY 1, 2
                           ORDER BY total_{metric} DESC
                         )
-                        SELECT player_name, total_{metric} FROM scoreboard
+                        SELECT player_name, total_{metric} FROM metrics
                         """
 
         print(query_details)
