@@ -13,3 +13,4 @@ g.get_player_pts(2021, 'DEN')
 
 g.get_player_metric(2021, 'DEN', 'MEDIAN', 'pts')
 
+g.get_efficiency_score(2021, 'DEN')

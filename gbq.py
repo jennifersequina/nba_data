@@ -190,3 +190,36 @@ class GBQ:
         result = self._read_data(query_details)
         return result
 
+
+    def get_efficiency_score(self, season: int, team: str) -> pd.DataFrame:
+        """
+        Get efficiency score of each player per team per season
+        :param season: Season ID parameter like 2021, 2020 etc.
+        :param team: Team abbreviation like DEN, BKN, etc.
+        :return: dataframe
+        """
+        query_details = f"""
+                        WITH scoreboard AS (
+                            SELECT t.player_name,
+                            SUM(IFNULL(t.pts,0)) +
+                            SUM(IFNULL(t.reb,0)) +
+                            SUM(IFNULL(t.ast,0)) +
+                            SUM(IFNULL(t.stl,0)) +
+                            SUM(IFNULL(t.blk,0)) -
+                            SUM(IFNULL(t.to,0)) -
+                            IFNULL(t.fga - t.fgm,0) -
+                            IFNULL(t.fg3a - t.fg3m,0) -
+                            IFNULL(t.fta - t.ftm,0) AS score
+                        FROM `{self.project_id}.{self.dataset}.traditional` t
+                        JOIN `{self.project_id}.{self.dataset}.schedule` s ON s.game_id = t.game_id
+                        WHERE s.season_type = 'REG' AND s.season = {season} AND t.team_abbreviation = '{team}'
+                        GROUP BY 1, t.fga, t.fgm, t.fg3a, t.fg3m, t.fta, t.ftm, t.game_id
+                        )
+                        SELECT player_name, ROUND(AVG(score),2) AS efficiency_score FROM scoreboard
+                        GROUP BY 1
+                        ORDER BY efficiency_score DESC
+                        """
+
+        print(query_details)
+        result = self._read_data(query_details)
+        return result
