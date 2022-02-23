@@ -1,6 +1,6 @@
-##NBA Data using SQL 
+## NBA Data using SQL 
 
-###Description:
+### Description:
 This project is about accessing NBA data stored in Google BigQuery using SQL syntax and Python functions.
 
 This contains the following python files:
@@ -8,7 +8,7 @@ This contains the following python files:
  - gbq.py
  - main.py
 
-###Methodology:
+### Methodology:
 This section explains what I did in each python file.
 
 1. yaml_reader.py - I created yaml_reader.py to create function for configuration, to connect with the database in Google BigQuery.
@@ -50,12 +50,12 @@ Inside this class I also created the following methods where the user can input 
 
 3. main.py - this is the main python file where the user can call the method inside the class created in gbq.py.
 
-###Usage:
+### Usage:
 This can be useful to analyze on-field data and interpret for meaningful insights that can help on the following, but not limited to:
 - assess player or team performance for improvement purposes
 - come up with the best plays based on player abilities, opponent, and other factors
 
-###For Improvement:
+### For Improvement:
 I started this project to further enhance my python & SQL skills using this interesting NBA dataset.
 This is still subject for improvement in terms of adding more query and methods that the user can use in data analysis.
     
